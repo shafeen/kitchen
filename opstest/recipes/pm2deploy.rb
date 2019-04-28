@@ -25,6 +25,7 @@ bash "pm2_deploy_app" do
     cwd "/home/ubuntu/#{app[:shortname]}"
     environment ({'HOME' => '/home/ubuntu', 'USER' => 'ubuntu'})
     code <<-EOH
+        source ~/.bashrc
         # deploy using pm2
         pm2 start app.js
     EOH
