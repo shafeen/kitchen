@@ -27,13 +27,8 @@ bash "pm2_deploy_app" do
     cwd "/home/ubuntu/#{app[:shortname]}"
     environment ({'HOME' => '/home/ubuntu', 'USER' => 'ubuntu'})
     code <<-EOH
-        # try to set up the PATH variable
-        if [ -f "$HOME/.bashrc" ]; then
-        . "$HOME/.bashrc"
-        fi
-        if [ -d "$HOME/bin" ] ; then
-            PATH="$HOME/bin:$PATH"
-        fi
+        # try to set up the PATH variable for nvm stuff
+        export PATH=/home/ubuntu/.nvm/versions/node/v10.15.3/bin:$PATH
         echo $PATH
         # deploy using pm2
         pm2 start app.js
