@@ -27,7 +27,14 @@ bash "pm2_deploy_app" do
     cwd "/home/ubuntu/#{app[:shortname]}"
     environment ({'HOME' => '/home/ubuntu', 'USER' => 'ubuntu'})
     code <<-EOH
-        source ~/.profile
+        # try to set up the PATH variable
+        if [ -f "$HOME/.bashrc" ]; then
+        . "$HOME/.bashrc"
+        fi
+        if [ -d "$HOME/bin" ] ; then
+            PATH="$HOME/bin:$PATH"
+        fi
+        echo $PATH
         # deploy using pm2
         pm2 start app.js
     EOH
