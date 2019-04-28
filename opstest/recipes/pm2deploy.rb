@@ -19,4 +19,15 @@ bash "clone_app_repo" do
     EOH
 end
 
+bash "pm2_deploy_app" do
+    user "ubuntu"
+    group "ubuntu"
+    cwd "/home/ubuntu/#{app[:shortname]}"
+    environment ({'HOME' => '/home/ubuntu', 'USER' => 'ubuntu'})
+    code <<-EOH
+        # deploy using pm2
+        pm2 start app.js
+    EOH
+end
+
 # do more here later as part of the deploy task
