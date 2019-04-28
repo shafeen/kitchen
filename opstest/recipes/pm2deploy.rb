@@ -14,6 +14,8 @@ bash "clone_app_repo" do
     cwd "/home/ubuntu"
     environment ({'HOME' => '/home/ubuntu', 'USER' => 'ubuntu'})
     code <<-EOH
+        # first clean the app repo if one exists already
+        rm -rf #{app[:shortname]}
         # clone the repo using deploy tokens
         git clone #{app_url} #{app[:shortname]}
     EOH
