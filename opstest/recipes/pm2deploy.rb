@@ -1,18 +1,17 @@
-include_recipe 'deploy'
-
-
 node[:deploy].each do |application, deploy|
-    opsworks_deploy_dir do
+
+    bash "clone_app_repo" do
         user "ubuntu"
         group "ubuntu"
-        path deploy[:deploy_to]
+        cwd "/home/ubuntu"
+        environment ({'HOME' => '/home/ubuntu', 'USER' => 'ubuntu'})
+        code <<-EOH
+            # add git deploy key to agent
+            echo "#{deploy[:scm][:ssh_key]}" | tr -d '\r' | ssh-add - > /dev/null
+            # clone the repo
+            git clone #{deploy[:scm][:repository]} #{application}
+        EOH
     end
 
-    opsworks_deploy do
-        user "ubuntu"
-        deploy_data deploy
-        app application
-    end
-
-    # do more here later
+    # do more here later as part of the deploy task
 end
