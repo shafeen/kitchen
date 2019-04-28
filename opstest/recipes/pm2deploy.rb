@@ -30,6 +30,8 @@ bash "pm2_deploy_app" do
         # try to set up the PATH variable for nvm stuff
         export PATH=/home/ubuntu/.nvm/versions/node/v10.15.3/bin:$PATH
         echo $PATH
+        # install all npm dependencies (from package.json)
+        npm i
         # deploy using pm2
         pm2 start app.js
     EOH
