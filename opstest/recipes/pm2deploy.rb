@@ -1,14 +1,26 @@
 app = search("aws_opsworks_app").first
 
-Chef::Log.info("********** The app's short name is '#{app[:shortname]}' **********")
-Chef::Log.info("********** The app's URL is '#{app[:app_source][:url]}' **********")
+Chef::Log.info("****** app shortname: '#{app[:shortname]}' url: '#{app[:app_source][:url]} ******")
 
+# build the app url we'll sue to read & clone the repo
 app_env = app[:environment]
-app_url = app[:app_source][:url]
-app_url = app_url.sub! "://" , "://#{app_env[:GITLAB_DEPLOY_USER]}:#{app_env[:GITLAB_DEPLOY_PASSWORD]}@"
+app_url = app[:app_source][:url].sub! "://" , "://#{app_env[:GITLAB_DEPLOY_USER]}:#{app_env[:GITLAB_DEPLOY_PASSWORD]}@"
 
-#  need to use data bags for chef 12 on OpsWorks
+# find the (1) instance this recipe is being executed on and (2) its relevant layers
+instance = search("aws_opsworks_instance", "self:true").first
+Chef::Log.info("****** Instance '#{instance['instance_id']}' has the public IP '#{instance['public_ip']}' ******")
+layers = search("aws_opsworks_layer").select do |layer|
+    instance[:layer_ids].include? layer[:layer_id]
+end
+
+# assume each instance is associated to only one layer
+instance_layer = layers.first
+
+# only deploy apps whose shortnames match instance layer
 bash "clone_app_repo" do
+    only_if do
+        instance_layer[:shortname] == app[:shortname]
+    end
     user "ubuntu"
     group "ubuntu"
     cwd "/home/ubuntu"
@@ -22,6 +34,9 @@ bash "clone_app_repo" do
 end
 
 bash "pm2_deploy_app" do
+    only_if do
+        layers.first[:shortname] == app[:shortname]
+    end
     user "ubuntu"
     group "ubuntu"
     cwd "/home/ubuntu/#{app[:shortname]}"
