@@ -1,3 +1,4 @@
+# use the "aws_opsworks_app" databag to iterate thru apps
 search("aws_opsworks_app").each do |app|
 
     # find the (1) instance this recipe is being executed on and (2) its relevant layers
@@ -41,14 +42,11 @@ search("aws_opsworks_app").each do |app|
             echo $PATH
     
             # install all npm dependencies (from package.json)
-            cd #{app[:shortname]}
-            npm i
-            # deploy using pm2
+            cd #{app[:shortname]} && npm i
+            # deploy using pm2 (ensure no other apps running first)
+            pm2 kill
             pm2 start app.js
         EOH
     end
 
 end
-
-
-# do more here later as part of the deploy task
