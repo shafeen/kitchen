@@ -43,9 +43,9 @@ search("aws_opsworks_app").each do |app|
     
             # install all npm dependencies (from package.json)
             cd #{app[:shortname]} && npm i
-            # deploy using pm2 (ensure no other apps running first)
+            # deploy using pm2 (ensure no other apps running first and deploy script exists)
             pm2 kill
-            pm2 start app.js
+            npm run deploy
         EOH
     end
 
