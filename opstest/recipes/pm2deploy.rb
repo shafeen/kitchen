@@ -30,7 +30,7 @@ search("aws_opsworks_app").each do |app|
         user "ubuntu"
         group "ubuntu"
         cwd "/home/ubuntu"
-        environment ({'HOME' => '/home/ubuntu', 'USER' => 'ubuntu'})
+        environment ({'HOME' => '/home/ubuntu', 'USER' => 'ubuntu', 'PORT' => app_env[:PORT] })
         code <<-EOH
             # clean the app repo if one exists already
             rm -rf #{app[:shortname]}
