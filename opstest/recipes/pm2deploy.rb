@@ -49,4 +49,34 @@ search("aws_opsworks_app").each do |app|
         EOH
     end
 
+    # -------------------------------------------------------------------------------
+    # NOTE: this step requires an NGINX installation on ubuntu!
+    # setup NGINX reverse proxy (set to default) for the application PORT specified
+    # -------------------------------------------------------------------------------
+    if instance_layer[:shortname] == app[:shortname]
+        reverse_proxy_target_port = app_env[:PORT]
+        server_names = app_env[:SERVER_NAMES].split(',')
+
+        template "/etc/nginx/sites-available/#{app[:shortname]}" do
+            source "nginx-reverse-proxy.erb"
+            mode "0755"
+            owner "root"
+            group "root"
+            variables(server_names: server_names,
+                      reverse_proxy_target_port: reverse_proxy_target_port)
+        end
+
+        link "/etc/nginx/sites-available/#{app[:shortname]}" do
+            to "/etc/nginx/sites-enabled/#{app[:shortname]}"
+            link_type :symbolic
+            mode "0755"
+            owner "root"
+            group "root"
+        end
+
+        service "nginx" do
+            action [ :stop ,:start ]
+        end
+    end
+
 end
