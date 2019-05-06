@@ -1,3 +1,11 @@
+# ---------------------------------------------------
+#  Environment variables to set before running:
+#  - GITLAB_DEPLOY_USER
+#  - GITLAB_DEPLOY_PASSWORD
+#  - PORT
+#  - SERVER_NAMES
+# ---------------------------------------------------
+
 # use the "aws_opsworks_app" databag to iterate thru apps
 search("aws_opsworks_app").each do |app|
 
