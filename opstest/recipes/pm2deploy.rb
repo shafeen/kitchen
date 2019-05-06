@@ -66,6 +66,10 @@ search("aws_opsworks_app").each do |app|
                       reverse_proxy_target_port: reverse_proxy_target_port)
         end
 
+        file '/etc/nginx/sites-enabled/default' do
+            action :delete
+        end
+
         link "/etc/nginx/sites-enabled/#{app[:shortname]}" do
             to "/etc/nginx/sites-available/#{app[:shortname]}"
             link_type :symbolic
