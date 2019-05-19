@@ -13,6 +13,8 @@ bash "install_prometheus" do
 end
 
 pm2_ecosystem_filename = "ecosystem.config.js"
+prometheus_config_filename = "prometheus.yml"
+
 template "/home/ubuntu/#{expected_unzipped_folder}/#{pm2_ecosystem_filename}" do
     source "prometheus-ecosystem.config.js.erb"
     mode "0755"
@@ -23,7 +25,6 @@ template "/home/ubuntu/#{expected_unzipped_folder}/#{pm2_ecosystem_filename}" do
     action :create
 end
 
-prometheus_config_filename = "prometheus.yml"
 template "/home/ubuntu/#{expected_unzipped_folder}/#{prometheus_config_filename}" do
     source "prometheus.yml.erb"
     mode "0755"
