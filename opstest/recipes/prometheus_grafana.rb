@@ -18,7 +18,8 @@ template "/home/ubuntu/#{expected_unzipped_folder}/#{pm2_ecosystem_filename}" do
     mode "0755"
     owner "ubuntu"
     group "ubuntu"
-    variables()
+    variables(prometheus_config_filename: prometheus_config_filename,
+              pm2_ecosystem_filename: pm2_ecosystem_filename)
     action :create
 end
 
