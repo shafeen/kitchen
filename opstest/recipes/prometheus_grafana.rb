@@ -37,6 +37,7 @@ end
 
 bash "start_prometheus" do
     user "ubuntu"
+    group "ubuntu"
     cwd "/home/ubuntu"
     environment ({'HOME' => '/home/ubuntu', 'USER' => 'ubuntu'})
     code <<-EOH
