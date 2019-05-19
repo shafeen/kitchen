@@ -41,6 +41,10 @@ bash "start_prometheus" do
     cwd "/home/ubuntu"
     environment ({'HOME' => '/home/ubuntu', 'USER' => 'ubuntu'})
     code <<-EOH
+        # try to set up the PATH variable for nvm stuff
+        export PATH=/home/ubuntu/.nvm/versions/node/v10.15.3/bin:$PATH
+        echo $PATH
+
         cd #{expected_unzipped_folder}
         pm2 start
     EOH
