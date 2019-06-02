@@ -48,6 +48,8 @@ search("aws_opsworks_app").each do |app|
         Chef::Log.info("****** Running recipe for app shortname: '#{app[:shortname]}' url: '#{app[:app_source][:url]} ******")
 
         temp_script_folder = "/tmp/internal_dns_updater"
+        app_env = app[:environment]
+        dns_update_type = if command['type']=="shutdown" then "DELETE" else "CREATE" end
 
         remote_directory temp_script_folder do
             owner "ubuntu"
@@ -56,10 +58,6 @@ search("aws_opsworks_app").each do |app|
             source "internal_dns_updater"
             action :create
         end
-
-        app_env = app[:environment]
-
-        dns_update_type = if command['type']=="shutdown" then "DELETE" else "CREATE" end
 
         bash "update_internal_dns_script" do
             user "ubuntu"
@@ -87,7 +85,11 @@ search("aws_opsworks_app").each do |app|
             EOH
         end
 
-        # TODO: clean up the temp directory created
+        remote_directory temp_script_folder do
+            owner "ubuntu"
+            group "ubuntu"
+            action :delete
+        end
 
     end
 
