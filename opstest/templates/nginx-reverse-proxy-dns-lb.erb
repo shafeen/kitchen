@@ -1,0 +1,20 @@
+upstream backend {
+  server <%= @app_internal_domain %>:<%= @reverse_proxy_target_port %>;
+}
+
+server {
+  listen 80;
+  listen [::]:80 default_server;
+
+  server_name <%= @server_names.join(' ') %>;
+
+  location / {
+    proxy_pass http://backend;
+
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+  }
+}
