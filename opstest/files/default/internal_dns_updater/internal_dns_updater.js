@@ -63,7 +63,7 @@ async function updateRecordSetForHostedZone() {
                             ResourceRecords: [{ Value: instanceInternalIpAddr }],
                             TTL: recordSetTTL,
                             Type: "A",
-                            SetIdentifier: 'Test entry',
+                            SetIdentifier: `recordset for internal ip ${instanceInternalIpAddr}`,
                         }
                     }
                 ],
