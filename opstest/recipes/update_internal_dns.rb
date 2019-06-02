@@ -16,6 +16,8 @@
 #
 #  Variables extracted from "instance" being launched (no need to set)
 #  - INSTANCE_INTERNAL_IP (no need to set, will be extracted)
+#
+#  TODO: add an instance startup/shutdown hook for DNS cleanup
 # ---------------------------------------------------
 
 # use the "aws_opsworks_app" databag to iterate thru apps to find the current one
@@ -30,6 +32,11 @@ search("aws_opsworks_app").each do |app|
 
     # assume each instance is only associated to one layer for simplicity
     instance_layer = layers.first
+
+    search("aws_opsworks_command").each do |command|
+        Chef::Log.info("********** The command's type is '#{command['type']}' **********")
+        Chef::Log.info("********** The command was sent at '#{command['sent_at']}' **********")
+    end
 
     # ---------------------------------------------------------------
     # only run recipe for apps whose shortnames match instance layer!
