@@ -3,6 +3,9 @@
 #  This recipe will add the newly launched instance's internal ip address to
 #  its app's desired internal hosted zone (aka internal DNS domain in route 53).
 #
+#  This recipe will also delete the ip address from the internal DNS domain
+#  if it detects "shutdown" as the opsworks command.
+#
 #  A load balancer will be able to use the internal DNS to figure out the server
 #  instances to round robin load balance between.
 #
