@@ -33,10 +33,9 @@ search("aws_opsworks_app").each do |app|
     # assume each instance is only associated to one layer for simplicity
     instance_layer = layers.first
 
-    search("aws_opsworks_command").each do |command|
-        Chef::Log.info("********** The command's type is '#{command['type']}' **********")
-        Chef::Log.info("********** The command was sent at '#{command['sent_at']}' **********")
-    end
+    # get command from the opsworks "Command Data Bag"
+    command = search("aws_opsworks_command").first
+    Chef::Log.info("****** The command's type is '#{command['type']}' sent at '#{command['sent_at']}' ******")
 
     # ---------------------------------------------------------------
     # only run recipe for apps whose shortnames match instance layer!
@@ -57,6 +56,8 @@ search("aws_opsworks_app").each do |app|
 
         app_env = app[:environment]
 
+        dns_update_type = if command['type']=="shutdown" then "DELETE" else "CREATE" end
+
         bash "update_internal_dns_script" do
             user "ubuntu"
             group "ubuntu"
@@ -70,6 +71,7 @@ search("aws_opsworks_app").each do |app|
                 'SUBDOMAIN_FOR_RECORD_SET' => app_env[:SUBDOMAIN_FOR_RECORD_SET],
                 'RECORD_SET_TTL' => app_env[:RECORD_SET_TTL],
                 'INSTANCE_INTERNAL_IP' => instance['private_ip'],
+                'DNS_UPDATE_TYPE' => dns_update_type,
                 'TMP_SCRIPT_FOLDER' => temp_script_folder
             })
             code <<-EOH
