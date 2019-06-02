@@ -21,47 +21,45 @@ search("aws_opsworks_app").each do |app|
     if instance_layer[:shortname] == app[:shortname]
         Chef::Log.info("****** Instance layer and app shortnames '#{instance_layer[:shortname]}' match! ******")
         Chef::Log.info("****** Deploying app shortname: '#{app[:shortname]}' url: '#{app[:app_source][:url]} ******")
-    end
 
-    # ----------------------------------------------------------
-    # only deploying apps whose shortnames match instance layer!
-    # ----------------------------------------------------------
+        # ----------------------------------------------------------
+        # only deploying apps whose shortnames match instance layer!
+        # ----------------------------------------------------------
 
-    # build app url we'll use to read & clone the repo
-    app_env = app[:environment]
-    app_url = app[:app_source][:url].sub! "://" , "://#{app_env[:GITLAB_DEPLOY_USER]}:#{app_env[:GITLAB_DEPLOY_PASSWORD]}@"
+        # build app url we'll use to read & clone the repo
+        app_env = app[:environment]
+        app_url = app[:app_source][:url].sub! "://" , "://#{app_env[:GITLAB_DEPLOY_USER]}:#{app_env[:GITLAB_DEPLOY_PASSWORD]}@"
 
-    bash "pm2_deploy_app" do
-        only_if do
-            instance_layer[:shortname] == app[:shortname]
+        bash "pm2_deploy_app" do
+            only_if do
+                instance_layer[:shortname] == app[:shortname]
+            end
+            user "ubuntu"
+            group "ubuntu"
+            cwd "/home/ubuntu"
+            environment ({'HOME' => '/home/ubuntu', 'USER' => 'ubuntu', 'PORT' => app_env[:PORT]})
+            code <<-EOH
+                # clean the app repo if one exists already
+                rm -rf #{app[:shortname]}
+                # clone the repo using deploy tokens
+                git clone #{app_url} #{app[:shortname]}
+        
+                # try to set up the PATH variable for nvm stuff
+                export PATH=/home/ubuntu/.nvm/versions/node/v10.15.3/bin:$PATH
+                echo $PATH
+        
+                # install all npm dependencies (from package.json)
+                cd #{app[:shortname]} && npm i
+                # deploy using pm2 (ensure no other apps running first and deploy script exists)
+                pm2 kill
+                npm run deploy
+            EOH
         end
-        user "ubuntu"
-        group "ubuntu"
-        cwd "/home/ubuntu"
-        environment ({'HOME' => '/home/ubuntu', 'USER' => 'ubuntu', 'PORT' => app_env[:PORT]})
-        code <<-EOH
-            # clean the app repo if one exists already
-            rm -rf #{app[:shortname]}
-            # clone the repo using deploy tokens
-            git clone #{app_url} #{app[:shortname]}
-    
-            # try to set up the PATH variable for nvm stuff
-            export PATH=/home/ubuntu/.nvm/versions/node/v10.15.3/bin:$PATH
-            echo $PATH
-    
-            # install all npm dependencies (from package.json)
-            cd #{app[:shortname]} && npm i
-            # deploy using pm2 (ensure no other apps running first and deploy script exists)
-            pm2 kill
-            npm run deploy
-        EOH
-    end
 
-    # -------------------------------------------------------------------------------
-    # NOTE: this step requires an NGINX installation on ubuntu!
-    # setup NGINX reverse proxy (set to default) for the application PORT specified
-    # -------------------------------------------------------------------------------
-    if instance_layer[:shortname] == app[:shortname]
+        # -------------------------------------------------------------------------------
+        # NOTE: this step requires an NGINX installation on ubuntu!
+        # setup NGINX reverse proxy (set to default) for the application PORT specified
+        # -------------------------------------------------------------------------------
         reverse_proxy_target_port = app_env[:PORT]
         server_names = app_env[:SERVER_NAMES].split(',')
 
