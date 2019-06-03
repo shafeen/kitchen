@@ -58,7 +58,9 @@ search("aws_opsworks_app").each do |app|
         end
 
         service "nginx" do
-            action [ :stop ,:start ]
+            action [ :stop, :start ]
+            retries 3
+            retry_delay 60
         end
     end
 
