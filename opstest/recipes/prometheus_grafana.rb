@@ -73,7 +73,7 @@ bash "start_prometheus_grafana" do
         export PATH=/home/ubuntu/.nvm/versions/node/v10.15.3/bin:$PATH
         echo $PATH
 
-        cd $HOME/#{prometheus_unzipped_folder} && pm2 start
-        cd $HOME/#{grafana_unzipped_folder} && pm2 start
+        cd $HOME/#{prometheus_renamed_folder} && pm2 start
+        cd $HOME/#{grafana_renamed_folder} && pm2 start
     EOH
 end
