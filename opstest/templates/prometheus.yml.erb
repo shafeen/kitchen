@@ -28,7 +28,7 @@ scrape_configs:
     static_configs:
     - targets: ['localhost:9090']
 
-    <% if @scrape_dns_names_list.length > 0 %>
+    <% if @scrape_dns_names_list && @scrape_dns_names_list.length > 0 %>
       dns_sd_configs:
       - names:
           <% @scrape_dns_names_list.each do |dns_name| %>
