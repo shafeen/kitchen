@@ -3,7 +3,6 @@
 #  - GITLAB_DEPLOY_USER
 #  - GITLAB_DEPLOY_PASSWORD
 #  - PORT
-#  - SERVER_NAMES
 # ---------------------------------------------------
 
 # use the "aws_opsworks_app" databag to iterate thru apps
@@ -20,7 +19,9 @@ search("aws_opsworks_app").each do |app|
     instance_layer = layers.first
     if instance_layer[:shortname] == app[:shortname]
         Chef::Log.info("****** Instance layer and app shortnames '#{instance_layer[:shortname]}' match! ******")
-        Chef::Log.info("****** Deploying app shortname: '#{app[:shortname]}' url: '#{app[:app_source][:url]} ******")
+        if app[:app_source][:url]
+            Chef::Log.info("****** Deploying app shortname: '#{app[:shortname]}' url: '#{app[:app_source][:url]} ******")
+        end
 
         # ----------------------------------------------------------
         # only deploying apps whose shortnames match instance layer!
@@ -54,38 +55,6 @@ search("aws_opsworks_app").each do |app|
                 pm2 kill
                 npm run deploy
             EOH
-        end
-
-        # -------------------------------------------------------------------------------
-        # NOTE: this step requires an NGINX installation on ubuntu!
-        # setup NGINX reverse proxy (set to default) for the application PORT specified
-        # -------------------------------------------------------------------------------
-        reverse_proxy_target_port = app_env[:PORT]
-        server_names = app_env[:SERVER_NAMES].split(',')
-
-        template "/etc/nginx/sites-available/#{app[:shortname]}" do
-            source "nginx-reverse-proxy.erb"
-            mode "0755"
-            owner "root"
-            group "root"
-            variables(server_names: server_names,
-                      reverse_proxy_target_port: reverse_proxy_target_port)
-        end
-
-        file '/etc/nginx/sites-enabled/default' do
-            action :delete
-        end
-
-        link "/etc/nginx/sites-enabled/#{app[:shortname]}" do
-            to "/etc/nginx/sites-available/#{app[:shortname]}"
-            link_type :symbolic
-            mode "0755"
-            owner "root"
-            group "root"
-        end
-
-        service "nginx" do
-            action [ :stop ,:start ]
         end
     end
 
