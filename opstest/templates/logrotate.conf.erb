@@ -1,0 +1,8 @@
+<%= @app_log_dir %>/*.log {
+    su <%= @log_user %> <%= @log_group %>
+    daily
+    rotate <%= @times_to_rotate %>
+    missingok
+    compress
+    dateext
+}
