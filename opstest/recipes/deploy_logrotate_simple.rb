@@ -26,7 +26,7 @@ search("aws_opsworks_app").each do |app|
         directory log_dir do
             owner app_env[:LOG_USER]
             group app_env[:LOG_GROUP]
-            mode "0644"
+            mode "0755"
             action :create
         end
 
@@ -35,7 +35,7 @@ search("aws_opsworks_app").each do |app|
         directory logrotate_conf_dir do
             owner "root"
             group "root"
-            mode "0644"
+            mode "0755"
             action :create
         end
 
@@ -59,7 +59,7 @@ search("aws_opsworks_app").each do |app|
         directory app_log_dir do
             owner app_env[:LOG_USER]
             group app_env[:LOG_GROUP]
-            mode "0644"
+            mode "0755"
             action :create
         end
 
