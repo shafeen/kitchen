@@ -45,8 +45,8 @@ search("aws_opsworks_app").each do |app|
         template logrotate_conf_path do
             source "logrotate.conf.erb"
             mode "0644"
-            owner root
-            group root
+            owner "root"
+            group "root"
             variables(app_log_dir: app_env[:APP_LOG_DIR],
                       log_user: app_env[:LOG_USER],
                       log_group: app_env[:LOG_GROUP],
@@ -54,7 +54,9 @@ search("aws_opsworks_app").each do |app|
         end
 
         # create the application log directory if it doesn't exist already
-        directory app_env[:APP_LOG_DIR] do
+        default_app_log_dir = "#{log_dir}/#{app[:shortname]}"
+        app_log_dir = if app_env[:APP_LOG_DIR] then app_env[:APP_LOG_DIR] else default_app_log_dir end
+        directory app_log_dir do
             owner app_env[:LOG_USER]
             group app_env[:LOG_GROUP]
             mode "0644"
