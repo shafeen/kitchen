@@ -50,7 +50,7 @@ search("aws_opsworks_app").each do |app|
             variables(app_log_dir: app_env[:APP_LOG_DIR],
                       log_user: app_env[:LOG_USER],
                       log_group: app_env[:LOG_GROUP],
-                      num_days_to_rotate: num_days_to_rotate)
+                      times_to_rotate: num_days_to_rotate)
         end
 
         # create the application log directory if it doesn't exist already
