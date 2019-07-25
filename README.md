@@ -4,7 +4,7 @@
 AWS OpsWorks cookbooks I've written to get some SERIOUS work done. 
 
 ## Scenario Index
-> All scenarios are OpsWorks specifc and we'll follow the convention that "layers" 
+> All scenarios are OpsWorks and ubuntu specifc. We'll follow the convention that "layers" 
 will have the same shortnames as the "apps" deployed onto their instances.
 
 For info on specific environment variables needed on the app deployed, go read the 
@@ -32,8 +32,12 @@ settings for the prometheus servers (like what DNS servers to scrape).
   `opstest::prometheus_grafana`
 - deploy: `opstest::prometheus_dns_deploy`, `opstest::nginx_localhost_reverseproxy`
 
-### Simple Load balancer 
-Coming soon!
-
 ### Instances self updating their dns entries upon deployment
+You just add the `opstest::update_internal_dns` to your deploy recipe list 
+and ensure that you have `opstest::node10` in your setup recipe list (along
+with your other needed setup recipes).
+- setup: `opstest::node10`, \[any setup recipe you need\]
+- deploy: \[relevant deploy recipe\], `opstest::update_internal_dns`
+
+### Simple round-robin Load balancer 
 Coming soon!
