@@ -39,13 +39,13 @@ search("aws_opsworks_app").each do |app|
             EOH
         end
 
-        # setup filebeat.yml to send the appropriate log files to elasticsearch
+        # setup filebeat.yml (with root ownership) to send the appropriate log files to elasticsearch
         filebeat_folder_path = "#{user_home_dir}/#{filebeat_renamed_folder}"
         filebeat_config_filename = "filebeat.yml"
         template "#{filebeat_folder_path}/#{filebeat_config_filename}" do
             source "filebeat-7-2-0.yml.erb"
             mode "0755"
-            owner user_name
+            owner "root"
             group user_name
             variables(app_log_dir: app_env[:APP_LOG_DIR],
                       elasticsearch_server_addr: app_env[:ELASTICSEARCH_SERVER_ADDR])
