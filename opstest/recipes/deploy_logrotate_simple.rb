@@ -4,6 +4,7 @@
 #  - APP_LOG_DIR - the directory containing the application logs
 #  - LOG_USER
 #  - LOG_GROUP
+#  - LOG_COPYTRUNCATE - set to non-empty if you want copytruncate instead of create
 # ---------------------------------------------------
 
 # use the "aws_opsworks_app" databag to iterate thru apps
@@ -42,15 +43,18 @@ search("aws_opsworks_app").each do |app|
         # copy the template logrotate.conf file into this directory with root 0644 permissions
         logrotate_conf_path = "#{logrotate_conf_dir}/logrotate.conf"
         num_days_to_rotate = 15
+        conf_template = "logrotate.conf.erb"
+        create_or_copytruncate = if app_env[:LOG_COPYTRUNCATE] then "copytruncate" else "create" end
         template logrotate_conf_path do
-            source "logrotate.conf.erb"
+            source conf_template
             mode "0644"
             owner "root"
             group "root"
             variables(app_log_dir: app_env[:APP_LOG_DIR],
                       log_user: app_env[:LOG_USER],
                       log_group: app_env[:LOG_GROUP],
-                      times_to_rotate: num_days_to_rotate)
+                      times_to_rotate: num_days_to_rotate,
+                      create_or_copytruncate: create_or_copytruncate)
         end
 
         # create the application log directory if it doesn't exist already
