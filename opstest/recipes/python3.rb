@@ -5,8 +5,8 @@
     end
 end
 
-# install pipenv and other required "user installation" pip3 modules
-["pipenv", "boto3"].each do |pip3_package_name|
+# install pipenv and any other required "user installation" pip3 modules
+["pipenv"].each do |pip3_package_name|
     bash "install pip3 package '#{pip3_package_name}'" do
         user "ubuntu"
         group "ubuntu"
