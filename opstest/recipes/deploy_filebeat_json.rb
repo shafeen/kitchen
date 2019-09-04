@@ -33,9 +33,13 @@ search("aws_opsworks_app").each do |app|
             cwd user_home_dir
             environment ({'HOME' => user_home_dir, 'USER' => user_name})
             code <<-EOH
-                wget #{filebeat_url} -O #{filebeat_download_file}
-                tar -xzvf #{filebeat_download_file} && rm #{filebeat_download_file}
-                mv #{filebeat_unzipped_folder} #{filebeat_renamed_folder}
+                # download/rename the filebeat unzipped folder if it doesn't exist yet
+                if [ ! -d '#{filebeat_renamed_folder}' ] 
+                then
+                    wget #{filebeat_url} -O #{filebeat_download_file}
+                    tar -xzvf #{filebeat_download_file} && rm #{filebeat_download_file}
+                    mv #{filebeat_unzipped_folder} #{filebeat_renamed_folder}
+                fi
             EOH
         end
 
@@ -63,9 +67,9 @@ search("aws_opsworks_app").each do |app|
             action :create
         end
 
-        # ------------------
-        # launch filebeat
-        # ------------------
+        # ---------------------------------
+        # launch filebeat (if not running)
+        # ---------------------------------
         bash "start_filebeat" do
             user "root"
             group "root"
@@ -75,8 +79,9 @@ search("aws_opsworks_app").each do |app|
                 # try to set up the PATH variable for nvm stuff
                 export PATH=#{user_home_dir}/.nvm/versions/node/v10.15.3/bin:$PATH
                 echo $PATH
-        
-                cd $FILEBEAT_FOLDER && pm2 start
+                cd $FILEBEAT_FOLDER
+                # only start filebeat with pm2 if it isn't running already
+                [[ `pm2 pid filebeat` != '' ]] && echo 'filebeat already running' || pm2 start
             EOH
         end
     end
