@@ -70,6 +70,7 @@ search("aws_opsworks_app").each do |app|
         # ---------------------------------
         # launch filebeat (if not running)
         # ---------------------------------
+        Chef::Log.level = :debug
         bash "start_filebeat" do
             user "root"
             group "root"
@@ -82,7 +83,10 @@ search("aws_opsworks_app").each do |app|
                 cd $FILEBEAT_FOLDER
                 # only start filebeat with pm2 if it isn't running already
                 [[ `pm2 pid filebeat` != '' ]] && echo 'filebeat already running' || pm2 start
+                sleep 2
+                [[ `pm2 pid filebeat` != '' ]] && echo 'filebeat running' || echo 'filebeat not running'
             EOH
         end
+        Chef::Log.level = :info
     end
 end
