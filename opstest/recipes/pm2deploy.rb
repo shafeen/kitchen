@@ -51,7 +51,7 @@ search("aws_opsworks_app").each do |app|
         app_env = app[:environment]
         app_url = app[:app_source][:url].sub! "://" , "://#{app_env[:GITLAB_DEPLOY_USER]}:#{app_env[:GITLAB_DEPLOY_PASSWORD]}@"
 
-        bash "pm2_deploy_app" do
+        bash "pm2_download_app" do
             user USER
             group USER
             cwd USER_HOME
@@ -61,22 +61,12 @@ search("aws_opsworks_app").each do |app|
                 rm -rf #{app[:shortname]}
                 # clone the repo using deploy tokens
                 git clone #{app_url} #{app[:shortname]}
-        
-                # try to set up the PATH variable for nvm stuff
-                export PATH=$HOME/.nvm/versions/node/v10.15.3/bin:$PATH
-                echo $PATH
-        
-                # install all npm dependencies (from package.json)
-                cd #{app[:shortname]} && npm i
-                # deploy using pm2 (ensure no other apps running first and deploy script exists)
-                pm2 kill
-                npm run deploy
             EOH
         end
 
-        # --------------
-        # dotenv support
-        # --------------
+        # ------------------------------------------------------
+        # dotenv support -- must be set up before the app starts
+        # ------------------------------------------------------
         DOTENV_PREFIX = 'DOTENV_'
         dotenv_entries = app_env.select { |key, value| key[0..DOTENV_PREFIX.length-1] == DOTENV_PREFIX }
         dotenv_file_entries = dotenv_entries.map { |key, value|  [key[DOTENV_PREFIX.length..-1], value] }.to_h
@@ -90,6 +80,24 @@ search("aws_opsworks_app").each do |app|
             owner USER
             group USER
             variables(dotenv_file_entries: dotenv_file_entries)
+        end
+
+        bash "pm2_deploy_app" do
+            user USER
+            group USER
+            cwd USER_HOME
+            environment ({'HOME' => USER_HOME, 'USER' => USER, 'PORT' => app_env[:PORT]})
+            code <<-EOH
+                # try to set up the PATH variable for nvm stuff
+                export PATH=$HOME/.nvm/versions/node/v10.15.3/bin:$PATH
+                echo $PATH
+        
+                # install all npm dependencies (from package.json)
+                cd #{app[:shortname]} && npm i
+                # deploy using pm2 (ensure no other apps running first and deploy script exists)
+                pm2 kill
+                npm run deploy
+            EOH
         end
 
     end
