@@ -1,9 +1,26 @@
-# ---------------------------------------------------
-#  Environment variables to set before running:
+# -------------------------------------------------------------
+#  Required Environment variables to set before running
+#  ====================================================
 #  - GITLAB_DEPLOY_USER
 #  - GITLAB_DEPLOY_PASSWORD
 #  - PORT
-# ---------------------------------------------------
+#
+#  package.json requirements
+#  =========================
+#  The app MUST have an npm script defined called "deploy" for
+#  this recipe to function correctly.
+#
+#  Dotenv support for injecting env variables specific to the app
+#  ==============================================================
+#  Optional environment variables to pass into the app's '.env' file
+#  should be prefixed with 'DOTENV_<name>'; these will get passed into
+#  the created '.env' file in the  project root directory with the
+#  'DOTENV_' prefix stripped out.
+#  Example:
+#  The env variable 'DOTENV_APPENV_1' will be renamed to 'APPENV_1'
+#  and injected into the project's '.env' file.
+#
+# -------------------------------------------------------------
 
 # use the "aws_opsworks_app" databag to iterate thru apps
 search("aws_opsworks_app").each do |app|
@@ -23,6 +40,9 @@ search("aws_opsworks_app").each do |app|
             Chef::Log.info("****** Deploying app shortname: '#{app[:shortname]}' url: '#{app[:app_source][:url]} ******")
         end
 
+        USER = "ubuntu"
+        USER_HOME = "/home/#{USER}"
+
         # ----------------------------------------------------------
         # only deploying apps whose shortnames match instance layer!
         # ----------------------------------------------------------
@@ -32,13 +52,10 @@ search("aws_opsworks_app").each do |app|
         app_url = app[:app_source][:url].sub! "://" , "://#{app_env[:GITLAB_DEPLOY_USER]}:#{app_env[:GITLAB_DEPLOY_PASSWORD]}@"
 
         bash "pm2_deploy_app" do
-            only_if do
-                instance_layer[:shortname] == app[:shortname]
-            end
-            user "ubuntu"
-            group "ubuntu"
-            cwd "/home/ubuntu"
-            environment ({'HOME' => '/home/ubuntu', 'USER' => 'ubuntu', 'PORT' => app_env[:PORT]})
+            user USER
+            group USER
+            cwd USER_HOME
+            environment ({'HOME' => USER_HOME, 'USER' => USER, 'PORT' => app_env[:PORT]})
             code <<-EOH
                 # clean the app repo if one exists already
                 rm -rf #{app[:shortname]}
@@ -46,7 +63,7 @@ search("aws_opsworks_app").each do |app|
                 git clone #{app_url} #{app[:shortname]}
         
                 # try to set up the PATH variable for nvm stuff
-                export PATH=/home/ubuntu/.nvm/versions/node/v10.15.3/bin:$PATH
+                export PATH=$HOME/.nvm/versions/node/v10.15.3/bin:$PATH
                 echo $PATH
         
                 # install all npm dependencies (from package.json)
@@ -56,6 +73,25 @@ search("aws_opsworks_app").each do |app|
                 npm run deploy
             EOH
         end
+
+        # --------------
+        # dotenv support
+        # --------------
+        DOTENV_PREFIX = 'DOTENV_'
+        dotenv_entries = app_env.select { |key, value| key[0..DOTENV_PREFIX.length-1] == DOTENV_PREFIX }
+        dotenv_file_entries = dotenv_entries.map { |key, value|  [key[DOTENV_PREFIX.length..-1], value] }.to_h
+        app_folder_path = "#{USER_HOME}/#{app[:shortname]}"
+        dotenv_file_path = "#{app_folder_path}/.env"
+        dotenv_template = "dotenv.erb"
+        template dotenv_file_path do
+            only_if "test -d #{app_folder_path}"
+            source dotenv_template
+            mode "0644"
+            owner USER
+            group USER
+            variables(dotenv_file_entries: dotenv_file_entries)
+        end
+
     end
 
 end
