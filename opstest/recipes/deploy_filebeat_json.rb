@@ -82,8 +82,7 @@ search("aws_opsworks_app").each do |app|
                 export PATH=#{user_home_dir}/.nvm/versions/node/v10.15.3/bin:$PATH
                 echo $PATH
                 cd $FILEBEAT_FOLDER
-                # only start filebeat with pm2 if it isn't running already
-                [[ `pm2 pid filebeat` != '' ]] && echo 'filebeat already running' >> debug.log || pm2 start
+                pm2 start
                 sleep 2
                 [[ `pm2 pid filebeat` != '' ]] && echo 'filebeat running' >> debug.log || echo 'filebeat not running' >> debug.log
             EOH
