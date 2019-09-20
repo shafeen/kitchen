@@ -44,7 +44,7 @@ search("aws_opsworks_app").each do |app|
         # Install Certbot PPA
         apt_update 'update'
         package 'software-properties-common' do
-            action: :install
+            action :install
         end
         ['universe', 'ppa:certbot/certbot'].each do |repository_uri|
             apt_repository 'add-certbot-repositories' do
@@ -56,7 +56,7 @@ search("aws_opsworks_app").each do |app|
         # Install Certbot
         ['certbot', 'python-certbot-nginx'].each do |package_name|
             package package_name do
-                action: :install
+                action :install
             end
         end
 
