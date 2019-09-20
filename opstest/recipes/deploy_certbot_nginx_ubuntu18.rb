@@ -47,8 +47,12 @@ search("aws_opsworks_app").each do |app|
             action :install
         end
         ['universe', 'ppa:certbot/certbot'].each do |repository_uri|
-            apt_repository repository_uri do
-                action :add
+            bash "adding apt repository #{repository_uri}" do
+                user 'root'
+                group 'root'
+                code <<-EOH
+                    add-apt-repository #{repository_uri}
+                EOH
             end
         end
         apt_update 'update'
