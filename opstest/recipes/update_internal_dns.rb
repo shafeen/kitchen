@@ -17,6 +17,9 @@
 #  - SUBDOMAIN_FOR_RECORD_SET (desired subdomain name to go under the hosted zone domain)
 #  - RECORD_SET_TTL (optional: defaults to 300s)
 #
+#  Optional environmental varibles
+#  - DNS_UPDATE_USE_PUBLIC_IP -- must be set to 'y' otherwise treated as false
+#
 #  Variables extracted from "instance" being launched (no need to set)
 #  - INSTANCE_INTERNAL_IP (no need to set, will be extracted)
 #
@@ -50,6 +53,7 @@ search("aws_opsworks_app").each do |app|
         temp_script_folder = "/tmp/internal_dns_updater"
         app_env = app[:environment]
         dns_update_type = if command['type']=="shutdown" then "DELETE" else "CREATE" end
+        use_public_ip = if app_env[:DNS_UPDATE_USE_PUBLIC_IP]==='y' then true else false end
 
         remote_directory temp_script_folder do
             owner "ubuntu"
@@ -71,7 +75,7 @@ search("aws_opsworks_app").each do |app|
                 'R53_HOSTED_ZONE_ID' => app_env[:R53_HOSTED_ZONE_ID],
                 'SUBDOMAIN_FOR_RECORD_SET' => app_env[:SUBDOMAIN_FOR_RECORD_SET],
                 'RECORD_SET_TTL' => app_env[:RECORD_SET_TTL],
-                'INSTANCE_INTERNAL_IP' => instance['private_ip'],
+                'INSTANCE_INTERNAL_IP' => if use_public_ip then instance['public_ip'] else instance['private_ip'] end,
                 'DNS_UPDATE_TYPE' => dns_update_type,
                 'TMP_SCRIPT_FOLDER' => temp_script_folder
             })
