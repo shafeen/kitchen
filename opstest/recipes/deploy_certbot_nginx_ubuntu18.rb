@@ -74,6 +74,8 @@ search("aws_opsworks_app").each do |app|
             user 'root'
             group 'root'
             code <<-EOH
+                # add a 30 sec delay to wait for any dns propagation time
+                sleep 30
                 certbot --nginx -n -d #{server_names} --agree-tos --email #{certbot_email} --redirect
             EOH
         end
