@@ -50,6 +50,7 @@ search("aws_opsworks_app").each do |app|
         # build app url we'll use to read & clone the repo
         app_env = app[:environment]
         app_url = app[:app_source][:url].sub! "://" , "://#{app_env[:GITLAB_DEPLOY_USER]}:#{app_env[:GITLAB_DEPLOY_PASSWORD]}@"
+        app_branch = (app[:app_source][:revision] && app[:app_source][:revision] != "null")? app[:app_source][:revision] : "master"
 
         bash "pm2_download_app" do
             user USER
@@ -60,7 +61,7 @@ search("aws_opsworks_app").each do |app|
                 # clean the app repo if one exists already
                 rm -rf #{app[:shortname]}
                 # clone the repo using deploy tokens
-                git clone #{app_url} #{app[:shortname]}
+                git clone #{app_url} #{app[:shortname]} --single-branch --branch #{app_branch}
             EOH
         end
 
